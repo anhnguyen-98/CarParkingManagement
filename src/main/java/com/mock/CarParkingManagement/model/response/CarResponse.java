@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -17,4 +15,6 @@ public class CarResponse {
     private String carColor;
     private String carType;
     private String company;
+    @JsonIgnoreProperties({"cars", "parkPrice", "parkStatus"})
+    private ParkingLotResponse parkingLot;
 }

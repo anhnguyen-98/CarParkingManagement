@@ -1,18 +1,14 @@
 package com.mock.CarParkingManagement.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class TripResponse {
@@ -25,4 +21,8 @@ public class TripResponse {
     private String destination;
     private String driver;
     private int maximumOnlineTicketNumber;
+    @JsonIgnoreProperties({"trip"})
+    private List<BookingOfficeResponse> bookingOffices;
+    @JsonIgnoreProperties("trip")
+    private List<TicketResponse> tickets;
 }

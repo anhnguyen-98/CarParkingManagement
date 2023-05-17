@@ -1,6 +1,5 @@
 package com.mock.CarParkingManagement.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +33,5 @@ public class ParkingLot {
     private String parkStatus;
 
     @OneToMany(mappedBy = "parkingLot", fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonIgnore
     private List<Car> cars;
 }

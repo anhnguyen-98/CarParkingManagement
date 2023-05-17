@@ -1,15 +1,12 @@
 package com.mock.CarParkingManagement.service;
 
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
-import com.mock.CarParkingManagement.model.entity.Employee;
-import com.mock.CarParkingManagement.model.entity.Trip;
 import com.mock.CarParkingManagement.model.dto.TripDTO;
+import com.mock.CarParkingManagement.model.entity.Trip;
 import com.mock.CarParkingManagement.model.others.CustomPage;
-import com.mock.CarParkingManagement.model.response.EmployeeResponse;
 import com.mock.CarParkingManagement.model.response.TripResponse;
 import com.mock.CarParkingManagement.repository.TripRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,14 +20,20 @@ import java.util.stream.Collectors;
 
 @Service
 public class TripServiceImpl implements TripService {
-    @Autowired
-    private TripRepository tripRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final TripRepository tripRepository;
+    private final ModelMapper modelMapper;
+
+    public TripServiceImpl(TripRepository tripRepository, ModelMapper modelMapper) {
+        this.tripRepository = tripRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomPage<TripResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<Trip> pagedResult = tripRepository.findAll(pageable);
         List<Trip> trips = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -41,7 +44,7 @@ public class TripServiceImpl implements TripService {
                 .collect(Collectors.toList());
         CustomPage<TripResponse> tripResponsePage = new CustomPage<>();
         tripResponsePage.setContent(tripResponseList);
-        tripResponsePage.setCurrentPage(pagedResult.getNumber());
+        tripResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         tripResponsePage.setTotalItems(pagedResult.getTotalElements());
         tripResponsePage.setTotalPages(pagedResult.getTotalPages());
         return tripResponsePage;

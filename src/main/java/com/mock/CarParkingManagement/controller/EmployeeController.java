@@ -1,14 +1,10 @@
 package com.mock.CarParkingManagement.controller;
 
 import com.mock.CarParkingManagement.model.dto.EmployeeDTO;
-import com.mock.CarParkingManagement.model.entity.Employee;
 import com.mock.CarParkingManagement.model.others.CustomPage;
-import com.mock.CarParkingManagement.model.response.MessageResponse;
 import com.mock.CarParkingManagement.model.response.EmployeeResponse;
+import com.mock.CarParkingManagement.model.response.MessageResponse;
 import com.mock.CarParkingManagement.service.EmployeeService;
-import com.mock.CarParkingManagement.util.password.ValidPassword;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,12 +14,15 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/employee")
 public class EmployeeController {
-    @Autowired
-    private EmployeeService employeeService;
+    private final EmployeeService employeeService;
+
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
 
     @GetMapping(path = "/all")
     public ResponseEntity<CustomPage<EmployeeResponse>> findAllEmployees(
-            @RequestParam(defaultValue = "0", name = "pageNo") Integer pageNo,
+            @RequestParam(defaultValue = "1", name = "pageNo") Integer pageNo,
             @RequestParam(defaultValue = "5", name = "pageSize") Integer pageSize,
             @RequestParam(defaultValue = "employeeId", name = "sortBy") String sortBy
     ) {

@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidPassword {
-    String message() default "Invalid password";
+    String message() default "password must contain at least 6 characters, including uppercase, lowercase and number";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

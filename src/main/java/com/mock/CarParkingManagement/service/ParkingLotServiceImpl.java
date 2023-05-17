@@ -1,15 +1,12 @@
 package com.mock.CarParkingManagement.service;
 
-import com.mock.CarParkingManagement.model.dto.ParkingLotDTO;
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
-import com.mock.CarParkingManagement.model.entity.Employee;
+import com.mock.CarParkingManagement.model.dto.ParkingLotDTO;
 import com.mock.CarParkingManagement.model.entity.ParkingLot;
 import com.mock.CarParkingManagement.model.others.CustomPage;
-import com.mock.CarParkingManagement.model.response.EmployeeResponse;
 import com.mock.CarParkingManagement.model.response.ParkingLotResponse;
 import com.mock.CarParkingManagement.repository.ParkingLotRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,14 +20,20 @@ import java.util.stream.Collectors;
 
 @Service
 public class ParkingLotServiceImpl implements ParkingLotService {
-    @Autowired
-    private ParkingLotRepository parkingLotRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ParkingLotRepository parkingLotRepository;
+    private final ModelMapper modelMapper;
+
+    public ParkingLotServiceImpl(ParkingLotRepository parkingLotRepository, ModelMapper modelMapper) {
+        this.parkingLotRepository = parkingLotRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomPage<ParkingLotResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<ParkingLot> pagedResult = parkingLotRepository.findAll(pageable);
         List<ParkingLot> parkingLots = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -41,7 +44,7 @@ public class ParkingLotServiceImpl implements ParkingLotService {
                 .collect(Collectors.toList());
         CustomPage<ParkingLotResponse> parkingLotResponsePage = new CustomPage<>();
         parkingLotResponsePage.setContent(parkingLotResponseList);
-        parkingLotResponsePage.setCurrentPage(pagedResult.getNumber());
+        parkingLotResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         parkingLotResponsePage.setTotalItems(pagedResult.getTotalElements());
         parkingLotResponsePage.setTotalPages(pagedResult.getTotalPages());
         return parkingLotResponsePage;

@@ -1,16 +1,14 @@
 package com.mock.CarParkingManagement.service;
 
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
+import com.mock.CarParkingManagement.model.dto.TicketDTO;
 import com.mock.CarParkingManagement.model.entity.Ticket;
 import com.mock.CarParkingManagement.model.entity.Trip;
-import com.mock.CarParkingManagement.model.dto.TicketDTO;
 import com.mock.CarParkingManagement.model.others.CustomPage;
 import com.mock.CarParkingManagement.model.response.TicketResponse;
-import com.mock.CarParkingManagement.model.response.TripResponse;
 import com.mock.CarParkingManagement.repository.TicketRepository;
 import com.mock.CarParkingManagement.repository.TripRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,16 +22,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class TicketServiceImpl implements TicketService {
-    @Autowired
-    private TicketRepository ticketRepository;
-    @Autowired
-    private TripRepository tripRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final TicketRepository ticketRepository;
+    private final TripRepository tripRepository;
+    private final ModelMapper modelMapper;
+
+    public TicketServiceImpl(TicketRepository ticketRepository, TripRepository tripRepository, ModelMapper modelMapper) {
+        this.ticketRepository = ticketRepository;
+        this.tripRepository = tripRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomPage<TicketResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<Ticket> pagedResult = ticketRepository.findAll(pageable);
         List<Ticket> tickets = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -44,7 +48,7 @@ public class TicketServiceImpl implements TicketService {
                 .collect(Collectors.toList());
         CustomPage<TicketResponse> ticketResponsePage = new CustomPage<>();
         ticketResponsePage.setContent(ticketResponseList);
-        ticketResponsePage.setCurrentPage(pagedResult.getNumber());
+        ticketResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         ticketResponsePage.setTotalItems(pagedResult.getTotalElements());
         ticketResponsePage.setTotalPages(pagedResult.getTotalPages());
         return ticketResponsePage;

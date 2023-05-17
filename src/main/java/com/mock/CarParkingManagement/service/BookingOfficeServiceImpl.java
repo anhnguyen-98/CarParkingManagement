@@ -1,15 +1,14 @@
 package com.mock.CarParkingManagement.service;
 
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
+import com.mock.CarParkingManagement.model.dto.BookingOfficeDTO;
 import com.mock.CarParkingManagement.model.entity.BookingOffice;
 import com.mock.CarParkingManagement.model.entity.Trip;
-import com.mock.CarParkingManagement.model.dto.BookingOfficeDTO;
 import com.mock.CarParkingManagement.model.others.CustomPage;
 import com.mock.CarParkingManagement.model.response.BookingOfficeResponse;
 import com.mock.CarParkingManagement.repository.BookingOfficeRepository;
 import com.mock.CarParkingManagement.repository.TripRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,16 +22,23 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingOfficeServiceImpl implements BookingOfficeService {
-    @Autowired
-    private BookingOfficeRepository bookingOfficeRepository;
-    @Autowired
-    private TripRepository tripRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final BookingOfficeRepository bookingOfficeRepository;
+    private final TripRepository tripRepository;
+    private final ModelMapper modelMapper;
+
+    public BookingOfficeServiceImpl(BookingOfficeRepository bookingOfficeRepository, TripRepository tripRepository,
+                                    ModelMapper modelMapper) {
+        this.bookingOfficeRepository = bookingOfficeRepository;
+        this.tripRepository = tripRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomPage<BookingOfficeResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<BookingOffice> pagedResult = bookingOfficeRepository.findAll(pageable);
         List<BookingOffice> bookingOffices = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -43,7 +49,7 @@ public class BookingOfficeServiceImpl implements BookingOfficeService {
                 .collect(Collectors.toList());
         CustomPage<BookingOfficeResponse> bookingOfficeResponsePage = new CustomPage<>();
         bookingOfficeResponsePage.setContent(bookingOfficeResponseList);
-        bookingOfficeResponsePage.setCurrentPage(pagedResult.getNumber());
+        bookingOfficeResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         bookingOfficeResponsePage.setTotalItems(pagedResult.getTotalElements());
         bookingOfficeResponsePage.setTotalPages(pagedResult.getTotalPages());
         return bookingOfficeResponsePage;

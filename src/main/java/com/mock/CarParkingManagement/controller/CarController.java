@@ -2,25 +2,26 @@ package com.mock.CarParkingManagement.controller;
 
 import com.mock.CarParkingManagement.model.dto.CarDTO;
 import com.mock.CarParkingManagement.model.others.CustomPage;
-import com.mock.CarParkingManagement.model.response.MessageResponse;
 import com.mock.CarParkingManagement.model.response.CarResponse;
+import com.mock.CarParkingManagement.model.response.MessageResponse;
 import com.mock.CarParkingManagement.service.CarService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/car")
 public class CarController {
-    @Autowired
-    private CarService carService;
+    private final CarService carService;
+
+    public CarController(CarService carService) {
+        this.carService = carService;
+    }
 
     @GetMapping("/all")
     public ResponseEntity<CustomPage<CarResponse>> findAllCars(
-            @RequestParam(defaultValue = "0", name = "pageNo") Integer pageNo,
+            @RequestParam(defaultValue = "1", name = "pageNo") Integer pageNo,
             @RequestParam(defaultValue = "5", name = "pageSize") Integer pageSize,
             @RequestParam(defaultValue = "licensePlate", name = "sortBy") String sortBy
     ) {

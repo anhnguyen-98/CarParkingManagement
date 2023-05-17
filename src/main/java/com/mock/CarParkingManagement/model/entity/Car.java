@@ -1,6 +1,5 @@
 package com.mock.CarParkingManagement.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,9 +30,4 @@ public class Car {
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "park_id")
     private ParkingLot parkingLot;
-
-//    @OneToOne(mappedBy = "car", fetch = FetchType.LAZY,
-//            cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE},
-//            orphanRemoval = true)
-//    private Ticket ticket;
 }

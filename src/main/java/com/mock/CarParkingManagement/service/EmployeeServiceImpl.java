@@ -1,14 +1,13 @@
 package com.mock.CarParkingManagement.service;
 
-import com.mock.CarParkingManagement.model.dto.EmployeeDTO;
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
 import com.mock.CarParkingManagement.exception.UsernameExistedException;
+import com.mock.CarParkingManagement.model.dto.EmployeeDTO;
 import com.mock.CarParkingManagement.model.entity.Employee;
 import com.mock.CarParkingManagement.model.others.CustomPage;
 import com.mock.CarParkingManagement.model.response.EmployeeResponse;
 import com.mock.CarParkingManagement.repository.EmployeeRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,19 +17,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
 public class EmployeeServiceImpl implements EmployeeService {
-    @Autowired
-    private EmployeeRepository employeeRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    private final EmployeeRepository employeeRepository;
+    private final ModelMapper modelMapper;
+
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper) {
+        this.employeeRepository = employeeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public CustomPage<EmployeeResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<Employee> pagedResult = employeeRepository.findAll(pageable);
         List<Employee> employees = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -41,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toList());
         CustomPage<EmployeeResponse> employeeResponsePage = new CustomPage<>();
         employeeResponsePage.setContent(employeeResponseList);
-        employeeResponsePage.setCurrentPage(pagedResult.getNumber());
+        employeeResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         employeeResponsePage.setTotalItems(pagedResult.getTotalElements());
         employeeResponsePage.setTotalPages(pagedResult.getTotalPages());
         return employeeResponsePage;

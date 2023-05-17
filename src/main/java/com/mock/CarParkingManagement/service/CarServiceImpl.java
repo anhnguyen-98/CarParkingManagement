@@ -1,18 +1,15 @@
 package com.mock.CarParkingManagement.service;
 
-import com.mock.CarParkingManagement.model.dto.CarDTO;
 import com.mock.CarParkingManagement.exception.EntityNotFoundException;
 import com.mock.CarParkingManagement.exception.LicensePlateExistedException;
+import com.mock.CarParkingManagement.model.dto.CarDTO;
 import com.mock.CarParkingManagement.model.entity.Car;
-import com.mock.CarParkingManagement.model.entity.Employee;
 import com.mock.CarParkingManagement.model.entity.ParkingLot;
 import com.mock.CarParkingManagement.model.others.CustomPage;
 import com.mock.CarParkingManagement.model.response.CarResponse;
-import com.mock.CarParkingManagement.model.response.EmployeeResponse;
 import com.mock.CarParkingManagement.repository.CarRepository;
 import com.mock.CarParkingManagement.repository.ParkingLotRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,16 +23,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class CarServiceImpl implements CarService {
-    @Autowired
-    private CarRepository carRepository;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private ParkingLotRepository parkingLotRepository;
+    private final CarRepository carRepository;
+    private final ModelMapper modelMapper;
+    private final ParkingLotRepository parkingLotRepository;
+
+    public CarServiceImpl(CarRepository carRepository, ModelMapper modelMapper, ParkingLotRepository parkingLotRepository) {
+        this.carRepository = carRepository;
+        this.modelMapper = modelMapper;
+        this.parkingLotRepository = parkingLotRepository;
+    }
 
     @Override
     public CustomPage<CarResponse> findAll(Integer pageNo, Integer pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        if (pageNo < 1) {
+            throw new IllegalArgumentException("Page index must not be less than one");
+        }
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, Sort.by(sortBy));
         Page<Car> pagedResult = carRepository.findAll(pageable);
         List<Car> cars = new ArrayList<>();
         if (pagedResult.hasContent()) {
@@ -46,7 +49,7 @@ public class CarServiceImpl implements CarService {
                 .collect(Collectors.toList());
         CustomPage<CarResponse> carResponsePage = new CustomPage<>();
         carResponsePage.setContent(carResponseList);
-        carResponsePage.setCurrentPage(pagedResult.getNumber());
+        carResponsePage.setCurrentPage(pagedResult.getNumber() + 1);
         carResponsePage.setTotalItems(pagedResult.getTotalElements());
         carResponsePage.setTotalPages(pagedResult.getTotalPages());
         return carResponsePage;
@@ -61,9 +64,9 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarResponse addCar(CarDTO carDTO) {
-        if(carRepository.existsByLicensePlate(carDTO.getLicensePlate())) {
+        if (carRepository.existsByLicensePlate(carDTO.getLicensePlate())) {
             throw new LicensePlateExistedException("Car with license plate = " + carDTO.getLicensePlate() + " existed");
-        };
+        }
         Long parkId = carDTO.getParkId();
         ParkingLot parkingLot = parkingLotRepository.findById(parkId).orElseThrow(() -> {
             throw new EntityNotFoundException("Parking Lot with id = " + parkId + " not existed");
@@ -75,9 +78,9 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarResponse updateCar(String licensePlate, CarDTO carDTO) {
-        if(!carRepository.existsByLicensePlate(licensePlate)) {
+        if (!carRepository.existsByLicensePlate(licensePlate)) {
             throw new EntityNotFoundException("Car with license plate = " + licensePlate + " not existed");
-        };
+        }
         Long parkId = carDTO.getParkId();
         ParkingLot parkingLot = parkingLotRepository.findById(parkId).orElseThrow(() -> {
             throw new EntityNotFoundException("Parking Lot with id = " + parkId + " not existed");
@@ -91,9 +94,9 @@ public class CarServiceImpl implements CarService {
     @Override
     @Transactional
     public void deleteCar(String licensePlate) {
-        if(!carRepository.existsByLicensePlate(licensePlate)) {
+        if (!carRepository.existsByLicensePlate(licensePlate)) {
             throw new EntityNotFoundException("Car with license plate = " + licensePlate + " not existed");
-        };
+        }
         carRepository.deleteByLicensePlate(licensePlate);
     }
 }
